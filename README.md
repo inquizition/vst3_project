@@ -15,10 +15,10 @@ To clone and create the project, open a command prompt and proceed as follows:
 ### Windows
 
 ```sh
-git clone https://github.com/steinbergmedia/vst3_example_plugin_hello_world.git
+git clone https://github.com/inquizition/vst3_project.git
 mkdir build
 cd build
-cmake ../vst3_example_plugin_hello_world
+cmake ../vst3_project
 cmake --build .
 ```
 
