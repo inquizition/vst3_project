@@ -105,7 +105,7 @@ tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
     //--- Process Audio---------------------
     //--- ----------------------------------
     // 2. Guard against empty buffers
-    if (data.numInputs == 0 || data.numOutputs == 0 || numSamples == 0)
+    if (data.numInputs == 0 || data.numOutputs == 0 || data.numSamples == 0)
     {
         // nothing to do
         return kResultOk;

@@ -27,14 +27,6 @@
 			"knob_strip": {
 				"path": "knob_strip.png"
 			},
-			"knob_strip_2x": {
-				"path": "knob_strip_2x.png",
-        "scale-factor": "2"
-			},
-			"knob_strip_3x": {
-				"path": "knob_strip_3x.png",
-        "scale_factor": "3"
-			},
 			"onoff_button": {
 				"path": "onoff_button.png"
 			},
