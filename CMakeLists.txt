@@ -32,6 +32,7 @@ smtg_target_add_plugin_resources(HelloWorld
         resource/helloworldeditor.uidesc
         resource/background.png
         resource/animation_knob.png
+        resource/knob_strip.png
         resource/onoff_button.png
         resource/background_2x.png
         resource/animation_knob_2x.png
