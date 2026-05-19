@@ -67,6 +67,7 @@ tresult PLUGIN_API HelloWorldProcessor::setActive (TBool state)
 tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
 {
     //--- Read inputs parameter changes-----------
+    // 1. Read parameter changes
     if (data.inputParameterChanges)
     {
         int32 numParamsChanged = data.inputParameterChanges->getParameterCount ();
@@ -103,18 +104,41 @@ tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
 
     //--- Process Audio---------------------
     //--- ----------------------------------
-    if (data.numInputs == 0 || data.numOutputs == 0)
+    // 2. Guard against empty buffers
+    if (data.numInputs == 0 || data.numOutputs == 0 || numSamples == 0)
     {
         // nothing to do
         return kResultOk;
     }
 
-    if (data.numSamples > 0)
+    // 3. Get channel pointers
+    int32 numChannels = data.inputs[0].numChannels;
+    uint32 sampleFrames = data.numSamples;
+
+    // 4. Bypass handling (best practice)
+    if (mBypass)
     {
-        // Process Algorithm
-        // Ex: algo.process (data.inputs[0].channelBuffers32, data.outputs[0].channelBuffers32,
-        // data.numSamples);
+        for (int32 ch = 0; ch < numChannels; ch++)
+        {
+            float* in  = data.inputs[0].channelBuffers32[ch];
+            float* out = data.outputs[0].channelBuffers32[ch];
+            memcpy(out, in, sampleFrames * sizeof(float));
+        }
+        return kResultOk;
     }
+
+    // 5. Your actual DSP goes here — example: volume gain
+    float gain = (float)mParam1;  // mParam1 is 0.0–1.0 normalized
+
+    for (int32 ch = 0; ch < numChannels; ch++)
+    {
+        float* in  = data.inputs[0].channelBuffers32[ch];
+        float* out = data.outputs[0].channelBuffers32[ch];
+
+        for (uint32 s = 0; s < sampleFrames; s++)
+            out[s] = in[s] * gain;
+    }
+
     return kResultOk;
 
 }

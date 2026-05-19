@@ -25,7 +25,15 @@
 				"scale-factor": "3"
 			},
 			"knob_strip": {
-				"path": "C:\\Users\\linry\\Documents\\Hobby\\VST\\vst3_project\\resource\\knob_strip.png"
+				"path": "knob_strip.png"
+			},
+			"knob_strip_2x": {
+				"path": "knob_strip_2x.png",
+        "scale-factor": "2"
+			},
+			"knob_strip_3x": {
+				"path": "knob_strip_3x.png",
+        "scale_factor": "3"
 			},
 			"onoff_button": {
 				"path": "onoff_button.png"
@@ -91,7 +99,7 @@
 					"mouse-enabled": "true",
 					"opacity": "1",
 					"origin": "0, 0",
-					"size": "350, 120",
+					"size": "500, 200",
 					"transparent": "false",
 					"wants-focus": "false"
 				},
