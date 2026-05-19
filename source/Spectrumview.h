@@ -13,7 +13,7 @@
 #include "vstgui/lib/animation/timingfunctions.h"
 #include "vstgui/lib/cvstguitimer.h"
 
-#include "spectrumanalyzer.h"
+#include "Spectrumanalyzer.h"
 
 #include <vector>
 #include <functional>
