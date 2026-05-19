@@ -18,6 +18,10 @@ smtg_add_vst3plugin(HelloWorld
     source/helloworldcontroller.h
     source/helloworldcontroller.cpp
     source/helloworldentry.cpp
+    source/Spsc_ringbuffer.h
+    source/Spectrumanalyzer.h
+    source/Spectrumanalyzer.cpp
+    source/Spectruview.h
     resource/helloworldeditor.uidesc
 )
 
@@ -25,6 +29,12 @@ target_link_libraries(HelloWorld
     PRIVATE
         sdk
         vstgui_support
+        kissfft
+)
+
+target_include_directories(HelloWorld
+    PRIVATE
+        ${external/kissfft}
 )
 
 smtg_target_add_plugin_resources(HelloWorld

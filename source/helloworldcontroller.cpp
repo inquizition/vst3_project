@@ -18,7 +18,6 @@ namespace Steinberg {
 tresult PLUGIN_API HelloWorldController::initialize (FUnknown* context)
 {
 	// Here the Plug-in will be instantiated
-
 	//---do not forget to call parent ------
 	tresult result = EditControllerEx1::initialize (context);
 	if (result != kResultOk)
@@ -29,6 +28,7 @@ tresult PLUGIN_API HelloWorldController::initialize (FUnknown* context)
 	// Here you could register some parameters
 	if (result == kResultTrue)
 	{
+		mAnalyzer = std::make_unique<SpectrumAnalyzer>();
 		//---Create Parameters------------
 		parameters.addParameter (STR16 ("Bypass"), nullptr, 1, 0,
 		                         Vst::ParameterInfo::kCanAutomate | Vst::ParameterInfo::kIsBypass,
@@ -105,14 +105,46 @@ tresult PLUGIN_API HelloWorldController::getState (IBStream* state)
 //------------------------------------------------------------------------
 IPlugView* PLUGIN_API HelloWorldController::createView (FIDString name)
 {
-	// Here the Host wants to open your editor (if you have one)
-	if (FIDStringsEqual (name, Vst::ViewType::kEditor))
-	{
-		// create your editor here and return a IPlugView ptr of it
-		auto* view = new VSTGUI::VST3Editor (this, "view", "helloworldeditor.uidesc");
-		return view;
-	}
-	return nullptr;
+    if (FIDStringsEqual(name, Vst::ViewType::kEditor))
+    {
+        // Create the standard VSTGUI editor
+        auto* editor = new VSTGUI::VST3Editor(this, "view", "helloworldeditor.uidesc");
+ 
+        // Create the spectrum view — positioned at bottom of the plugin window
+        // Adjust the rect to fit your background image layout
+        VSTGUI::CRect specRect(10, 130, 490, 260);  // x1, y1, x2, y2 inside the editor
+ 
+        auto* specView = new SpectrumView(specRect,
+            // DataCallback: called every ~33ms from UI thread
+            [this](float* outMag, int size) -> bool
+            {
+                // 1. Drain the ring buffer from the processor into the analyzer
+                if (auto* component = getComponent())
+                {
+                    if (auto* proc = dynamic_cast<HelloWorldProcessor*>(component))
+                    {
+                        auto& rb = proc->getSpectrumBuffer();
+                        static std::vector<float> tmp(4096);
+                        size_t got = rb.read(tmp.data(), tmp.size());
+                        if (got > 0)
+                            mAnalyzer->pushSamples(tmp.data(), (int)got);
+                    }
+                }
+                // 2. Get latest FFT frame (returns false if nothing new)
+                return mAnalyzer->getLatestMagnitudes(outMag, size);
+            }
+        );
+ 
+        // Attach the spectrum view to the editor's frame
+        // (The frame is available after the editor is opened by the host)
+        editor->setOpenFunc([specView](VSTGUI::CFrame* frame)
+        {
+            frame->addView(specView);
+        });
+ 
+        return editor;
+    }
+    return nullptr;
 }
 
 //------------------------------------------------------------------------

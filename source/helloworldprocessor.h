@@ -5,6 +5,7 @@
 #pragma once
 
 #include "public.sdk/source/vst/vstaudioeffect.h"
+#include "spsc_ringbuffer.h"
 
 namespace Steinberg {
 
@@ -48,11 +49,14 @@ public:
 	Steinberg::tresult PLUGIN_API setState (Steinberg::IBStream* state) SMTG_OVERRIDE;
 	Steinberg::tresult PLUGIN_API getState (Steinberg::IBStream* state) SMTG_OVERRIDE;
 
+	SpscRingBuffer<float, 32768>& getSpectrumBuffer() { return mSpectrumBuffer; }
+
 //------------------------------------------------------------------------
 protected:
 	Vst::ParamValue mParam1 = 0;
 	int16 mParam2 = 0;
 	bool mBypass = false;
+	SpscRingBuffer<float, 32768> mSpectrumBuffer;
 };
 
 //------------------------------------------------------------------------

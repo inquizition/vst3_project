@@ -104,18 +104,14 @@ tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
 
     //--- Process Audio---------------------
     //--- ----------------------------------
-    // 2. Guard against empty buffers
+    // 2. Guard
     if (data.numInputs == 0 || data.numOutputs == 0 || data.numSamples == 0)
-    {
-        // nothing to do
         return kResultOk;
-    }
-
-    // 3. Get channel pointers
-    int32 numChannels = data.inputs[0].numChannels;
+ 
+    int32  numChannels  = data.inputs[0].numChannels;
     uint32 sampleFrames = data.numSamples;
-
-    // 4. Bypass handling (best practice)
+ 
+    // 3. Bypass
     if (mBypass)
     {
         for (int32 ch = 0; ch < numChannels; ch++)
@@ -124,21 +120,28 @@ tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
             float* out = data.outputs[0].channelBuffers32[ch];
             memcpy(out, in, sampleFrames * sizeof(float));
         }
+        // NEW — still feed the spectrum buffer in bypass so the display stays alive
+        if (numChannels > 0)
+            mSpectrumBuffer.write(data.inputs[0].channelBuffers32[0], sampleFrames);
         return kResultOk;
     }
-
-    // 5. Your actual DSP goes here — example: volume gain
-    float gain = (float)mParam1;  // mParam1 is 0.0–1.0 normalized
-
+ 
+    // 4. DSP — gain
+    float gain = (float)mParam1;
+ 
     for (int32 ch = 0; ch < numChannels; ch++)
     {
         float* in  = data.inputs[0].channelBuffers32[ch];
         float* out = data.outputs[0].channelBuffers32[ch];
-
+ 
         for (uint32 s = 0; s < sampleFrames; s++)
             out[s] = in[s] * gain;
     }
-
+ 
+    // NEW — push left channel into spectrum ring buffer (post-gain)
+    if (numChannels > 0)
+        mSpectrumBuffer.write(data.outputs[0].channelBuffers32[0], sampleFrames);
+ 
     return kResultOk;
 
 }
