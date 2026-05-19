@@ -91,7 +91,7 @@
 					"mouse-enabled": "true",
 					"opacity": "1",
 					"origin": "0, 0",
-					"size": "500, 200",
+					"size": "500, 270",
 					"transparent": "false",
 					"wants-focus": "false"
 				},

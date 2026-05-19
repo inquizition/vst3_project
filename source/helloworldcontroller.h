@@ -5,6 +5,8 @@
 #pragma once
 
 #include "public.sdk/source/vst/vsteditcontroller.h"
+#include "spectrumanalyzer.h"
+#include <memory>
 
 namespace Steinberg {
 
@@ -51,6 +53,7 @@ public:
 
 //------------------------------------------------------------------------
 protected:
+	std::unique_ptr<SpectrumAnalyzer> mAnalyzer;
 };
 
 //------------------------------------------------------------------------
