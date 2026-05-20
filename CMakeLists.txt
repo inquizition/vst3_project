@@ -34,7 +34,7 @@ target_link_libraries(HelloWorld
 
 target_include_directories(HelloWorld
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/external/kissfft
+        ${kissfft_SOURCE_DIR}
 )
 
 smtg_target_add_plugin_resources(HelloWorld
