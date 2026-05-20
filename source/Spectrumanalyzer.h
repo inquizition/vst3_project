@@ -9,11 +9,8 @@
 #include <vector>
 #include <cmath>
 #include <cstring>
-
-// Forward declare KissFFT types so we don't need the header here
-struct kiss_fft_state;
-typedef struct kiss_fft_state* kiss_fft_cfg;
-struct kiss_fft_cpx { float r; float i; };
+#include <atomic>
+#include "kiss_fft.h"
 
 class SpectrumAnalyzer
 {
