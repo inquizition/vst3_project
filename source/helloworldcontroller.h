@@ -1,14 +1,18 @@
-//------------------------------------------------------------------------
+//-----------------------------------------------------------------------//------------------------------------------------------------------------
 // Copyright(c) 2022 Steinberg Media Technologies GmbH.
 //------------------------------------------------------------------------
 
 #pragma once
 
 #include "public.sdk/source/vst/vsteditcontroller.h"
-#include "spectrumanalyzer.h"
+#include "pluginterfaces/vst/ivstmessage.h"
+#include "Spectrumanalyzer.h"
 #include <memory>
 
 namespace Steinberg {
+
+// Forward declare so the header doesn't need to include the processor header
+class HelloWorldProcessor;
 
 //------------------------------------------------------------------------
 //  HelloWorldController
@@ -25,6 +29,9 @@ public:
 	{
 		return (Steinberg::Vst::IEditController*)new HelloWorldController;
 	}
+
+	// Overridden to capture the peer (processor) pointer when host connects components
+	Steinberg::tresult PLUGIN_API connect (Steinberg::Vst::IConnectionPoint* other) SMTG_OVERRIDE;
 
 	// IPluginBase
 	Steinberg::tresult PLUGIN_API initialize (Steinberg::FUnknown* context) SMTG_OVERRIDE;
@@ -54,6 +61,7 @@ public:
 //------------------------------------------------------------------------
 protected:
 	std::unique_ptr<SpectrumAnalyzer> mAnalyzer;
+	HelloWorldProcessor*              mProcessor { nullptr }; // set in connect()
 };
 
 //------------------------------------------------------------------------

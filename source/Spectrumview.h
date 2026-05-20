@@ -72,7 +72,6 @@ public:
         ctx->drawRect(r, VSTGUI::kDrawStroked);
     }
 
-    bool getIsTransparent() const override { return false; }
 
 private:
     //-----------------------------------------------------------------------
