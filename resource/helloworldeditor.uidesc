@@ -1,139 +1,123 @@
 {
-	"vstgui-ui-description": {
-		"version": "1",
-		"bitmaps": {
-			"animation_knob": {
-				"path": "animation_knob.png"
-			},
-			"animation_knob_2x": {
-				"path": "animation_knob_2x.png",
-				"scale-factor": "2"
-			},
-			"animation_knob_3x": {
-				"path": "animation_knob_3x.png",
-				"scale-factor": "3"
-			},
-			"background": {
-				"path": "background.png"
-			},
-			"background_2x": {
-				"path": "background_2x.png",
-				"scale-factor": "2"
-			},
-			"background_3x": {
-				"path": "background_3x.png",
-				"scale-factor": "3"
-			},
-			"knob_strip": {
-				"path": "knob_strip.png"
-			},
-			"onoff_button": {
-				"path": "onoff_button.png"
-			},
-			"onoff_button_2x": {
-				"path": "onoff_button_2x.png",
-				"scale-factor": "2"
-			},
-			"onoff_button_3x": {
-				"path": "onoff_button_3x.png",
-				"scale-factor": "3"
-			}
-		},
-		"fonts": {},
-		"colors": {},
-		"control-tags": {
-			"Bypass": "100",
-			"ParamOn": "1000",
-			"ParamVol": "102"
-		},
-		"custom": {
-			"FocusDrawing": {},
-			"VST3Editor": {
-				"Path": "C:\\Users\\linry\\Documents\\Hobby\\VST\\vst3_project\\resource\\helloworldeditor.uidesc"
-			},
-			"UIGridController": {
-				"Grids": "1x 1,5x 5,10x 10,12x 12,15x 15",
-				"Size": "10, 10"
-			},
-			"UITemplateController": {
-				"SelectedTemplate": "view"
-			},
-			"UIEditController": {
-				"EditViewScale": "1",
-				"EditorSize": "0, 0, 800, 705.6",
-				"SplitViewSize_0_0": "0.8107710417892878274059853538346942514181",
-				"SplitViewSize_0_1": "0.1603884638022365916043554534553550183773",
-				"SplitViewSize_1_0": "0.5091230135373748799665349906717892736197",
-				"SplitViewSize_1_1": "0.4826368452030606048808181185449939221144",
-				"SplitViewSize_2_0": "0.5200000000000000177635683940025046467781",
-				"SplitViewSize_2_1": "0.4737500000000000044408920985006261616945",
-				"TabSwitchValue": "4",
-				"Version": "1"
-			},
-			"UIAttributesController": {},
-			"UIViewCreatorDataSource": {
-				"SelectedRow": "0"
-			},
-			"UIBitmapsDataSource": {
-				"SelectedRow": "6"
-			},
-			"UITagsDataSource": {
-				"SelectedRow": "0"
-			}
-		},
-		"templates": {
-			"view": {
-				"attributes": {
-					"background-color": "~ BlackCColor",
-					"background-color-draw-style": "filled and stroked",
-					"bitmap": "background",
-					"class": "CViewContainer",
-					"mouse-enabled": "true",
-					"opacity": "1",
-					"origin": "0, 0",
-					"size": "500, 270",
-					"transparent": "false",
-					"wants-focus": "false"
-				},
-				"children": {
-					"COnOffButton": {
-						"attributes": {
-							"bitmap": "onoff_button",
-							"class": "COnOffButton",
-							"control-tag": "ParamOn",
-							"opacity": "1",
-							"origin": "113, 18",
-							"size": "125, 82",
-							"tooltip": "This is a On/Off Button",
-							"transparent": "false",
-							"wants-focus": "true",
-							"wheel-inc-value": "0.1"
-						}
-					},
-					"CAnimKnob": {
-						"attributes": {
-							"angle-range": "270",
-							"angle-start": "135",
-							"bitmap": "knob_strip",
-							"class": "CAnimKnob",
-							"control-tag": "ParamVol",
-							"height-of-one-image": "111",
-							"inverse-bitmap": "false",
-							"knob-range": "200",
-							"opacity": "1",
-							"origin": "227, 4",
-							"size": "111, 111",
-							"sub-pixmaps": "128",
-							"tooltip": "This is my Volume",
-							"transparent": "false",
-							"value-inset": "0",
-							"wants-focus": "true",
-							"wheel-inc-value": "0.1",
-							"zoom-factor": "1.5"
-						}
-					}
-				}
-			}
-		}
-	}
+  "vstgui-ui-description": {
+    "version": "1",
+    "bitmaps": {
+      "background": { "path": "background.png" },
+      "knob_strip": { "path": "knob_strip.png" },
+      "onoff_button": { "path": "onoff_button.png" }
+    },
+    "fonts": {},
+    "colors": {
+      "wheat": "#EFD6ACFF",
+      "ember": "#C44900FF",
+      "ink":   "#04151FFF",
+      "slate": "#183A37FF",
+      "line":  "#EFD6AC1F"
+    },
+    "control-tags": {
+      "Bypass":     "100",
+      "ParamGain":  "102",
+      "ParamQ":     "103",
+      "ParamFreq":  "104",
+      "ParamListen":"1000"
+    },
+    "custom": {
+      "FocusDrawing": {},
+      "UIGridController": { "Grids": "1x 1,5x 5,10x 10,12x 12,15x 15", "Size": "10, 10" },
+      "UITemplateController": { "SelectedTemplate": "view" }
+    },
+    "templates": {
+      "view": {
+        "attributes": {
+          "background-color": "ink",
+          "background-color-draw-style": "filled and stroked",
+          "bitmap": "background",
+          "class": "CViewContainer",
+          "mouse-enabled": "true",
+          "opacity": "1",
+          "origin": "0, 0",
+          "size": "900, 500",
+          "transparent": "false",
+          "wants-focus": "false"
+        },
+        "children": {
+
+          "COnOffButton-Listen": {
+            "attributes": {
+              "bitmap": "onoff_button",
+              "class": "COnOffButton",
+              "control-tag": "ParamListen",
+              "opacity": "1",
+              "origin": "625, 12",
+              "size": "100, 28",
+              "tooltip": "Solo / listen the selected band",
+              "transparent": "true",
+              "wants-focus": "true"
+            }
+          },
+
+          "COnOffButton-Bypass": {
+            "attributes": {
+              "bitmap": "onoff_button",
+              "class": "COnOffButton",
+              "control-tag": "Bypass",
+              "opacity": "1",
+              "origin": "765, 12",
+              "size": "100, 28",
+              "tooltip": "Bypass the whole plug-in",
+              "transparent": "true",
+              "wants-focus": "true"
+            }
+          },
+
+          "CAnimKnob-Gain": {
+            "attributes": {
+              "angle-range": "270",
+              "angle-start": "135",
+              "bitmap": "knob_strip",
+              "class": "CAnimKnob",
+              "control-tag": "ParamGain",
+              "height-of-one-image": "111",
+              "inverse-bitmap": "false",
+              "knob-range": "200",
+              "opacity": "1",
+              "origin": "228, 372",
+              "size": "86, 86",
+              "sub-pixmaps": "128",
+              "tooltip": "Cut or boost the selected band (-18 .. +18 dB)",
+              "transparent": "true",
+              "value-inset": "0",
+              "wants-focus": "true",
+              "wheel-inc-value": "0.05",
+              "zoom-factor": "1.5"
+            }
+          },
+
+          "CAnimKnob-Q": {
+            "attributes": {
+              "angle-range": "270",
+              "angle-start": "135",
+              "bitmap": "knob_strip",
+              "class": "CAnimKnob",
+              "control-tag": "ParamQ",
+              "height-of-one-image": "111",
+              "inverse-bitmap": "false",
+              "knob-range": "200",
+              "opacity": "1",
+              "origin": "332, 372",
+              "size": "86, 86",
+              "sub-pixmaps": "128",
+              "tooltip": "Width of the band (0.1 wide ... 10 sharp)",
+              "transparent": "true",
+              "value-inset": "0",
+              "wants-focus": "true",
+              "wheel-inc-value": "0.05",
+              "zoom-factor": "1.5"
+            }
+          }
+
+        }
+      }
+    }
+  }
 }

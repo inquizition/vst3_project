@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plate · Variation C (background plate)</title>
+  <link rel="stylesheet" href="../weatherroom/colors_and_type.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #000; width: 900px; height: 500px; overflow: hidden; }
+    .stage { width: 900px; height: 500px; overflow: hidden; }
+  </style>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+
+    // --- Plate-mode versions of the parts. Static chrome only.
+    // FFT area: dark rect + grid + axis labels, no spectrum line, no band.
+    // Knob slot: dark face + tick ring, no pointer (real knob bitmap overlays this).
+    // Toggle slot: empty pill (real button bitmap overlays this).
+
+    function FFTPlate({ width, height }) {
+      const padBottom = 22;
+      const innerH = height - padBottom;
+      const freqLabels = [
+        { x: 0.12, label: "60" },
+        { x: 0.28, label: "200" },
+        { x: 0.44, label: "1k" },
+        { x: 0.60, label: "3k" },
+        { x: 0.76, label: "8k" },
+        { x: 0.92, label: "18k" },
+      ];
+      const dbLabels = [
+        { y: 0.12, label: "+12" },
+        { y: 0.50, label: "0" },
+        { y: 0.88, label: "-12" },
+      ];
+      return (
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: "block" }}>
+          {/* grid */}
+          {[0.25, 0.50, 0.75].map((t, i) => (
+            <line key={"h"+i} x1={0} x2={width} y1={innerH * t} y2={innerH * t}
+              stroke="var(--line)" strokeDasharray={t === 0.50 ? "0" : "2 4"}
+              opacity={t === 0.50 ? 0.6 : 0.4} />
+          ))}
+          {[0.12, 0.28, 0.44, 0.60, 0.76, 0.92].map((t, i) => (
+            <line key={"v"+i} x1={width * t} x2={width * t} y1={0} y2={innerH}
+              stroke="var(--line)" strokeDasharray="2 4" opacity={0.35} />
+          ))}
+          {/* axis labels */}
+          <g style={{ fontFamily: "var(--mono)", fontSize: "10px", letterSpacing: "0.12em" }}>
+            {freqLabels.map((f) => (
+              <text key={f.label} x={width * f.x} y={height - 6} fill="var(--text-mute)" textAnchor="middle">{f.label}</text>
+            ))}
+            <text x={width - 4} y={11} fill="var(--text-mute)" textAnchor="end">HZ →</text>
+          </g>
+          <g style={{ fontFamily: "var(--mono)", fontSize: "10px", letterSpacing: "0.1em" }}>
+            {dbLabels.map((d) => (
+              <text key={d.label} x={4} y={innerH * d.y + 3} fill="var(--text-mute)">{d.label}</text>
+            ))}
+          </g>
+        </svg>
+      );
+    }
+
+    function KnobPlate({ size = 92, label }) {
+      const r = size / 2;
+      const arcRadius = r - 6;
+      const arcStart = -135, arcEnd = 135;
+      function polar(deg, rad) {
+        const a = ((deg - 90) * Math.PI) / 180;
+        return [r + rad * Math.cos(a), r + rad * Math.sin(a)];
+      }
+      function arcPath(a1, a2, rad) {
+        const [x1, y1] = polar(a1, rad);
+        const [x2, y2] = polar(a2, rad);
+        const large = Math.abs(a2 - a1) > 180 ? 1 : 0;
+        return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${rad} ${rad} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+      }
+      const ticks = [];
+      for (let i = 0; i <= 10; i++) {
+        const a = arcStart + (i / 10) * (arcEnd - arcStart);
+        const [tx1, ty1] = polar(a, r - 2);
+        const [tx2, ty2] = polar(a, r - (i === 5 || i === 0 || i === 10 ? 8 : 5));
+        ticks.push(<line key={i} x1={tx1} y1={ty1} x2={tx2} y2={ty2} stroke="var(--text-mute)" strokeWidth="1" opacity={i === 5 ? 0.7 : 0.35} />);
+      }
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div className="mono-eyebrow" style={{ fontSize: 10 }}>{label}</div>
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: "block" }}>
+            <defs>
+              <radialGradient id={`plate-knob-${label}`} cx="0.5" cy="0.35" r="0.7">
+                <stop offset="0%" stopColor="#1a3e44" />
+                <stop offset="55%" stopColor="#0e2a30" />
+                <stop offset="100%" stopColor="#061b22" />
+              </radialGradient>
+            </defs>
+            <g>{ticks}</g>
+            <path d={arcPath(arcStart, arcEnd, arcRadius)} stroke="var(--line)" strokeWidth="2" fill="none" strokeLinecap="round" />
+            <circle cx={r} cy={r} r={r - 14} fill={`url(#plate-knob-${label})`} stroke="var(--line-strong)" strokeWidth="1" />
+          </svg>
+          {/* value readout space (left blank — controller will draw) */}
+          <div style={{ height: 14, fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-mute)" }}>——</div>
+        </div>
+      );
+    }
+
+    function TogglePlate({ label }) {
+      return (
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          padding: "6px 12px",
+          border: "1px solid var(--line)",
+          background: "transparent",
+          color: "var(--text-dim)",
+          borderRadius: 999,
+          fontFamily: "var(--mono)", fontSize: 10,
+          letterSpacing: "0.18em", textTransform: "uppercase",
+          width: 92, justifyContent: "flex-start",
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--text-mute)" }} />
+          {label}
+        </div>
+      );
+    }
+
+    function StatPlate({ label, value, unit }) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 60 }}>
+          <span className="mono-eyebrow" style={{ fontSize: 9 }}>{label}</span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 14, color: "var(--text)", fontWeight: 700 }}>{value}</span>
+            {unit && <span style={{ fontFamily: "var(--mono)", fontSize: 9, color: "var(--text-mute)", letterSpacing: "0.18em", textTransform: "uppercase" }}>{unit}</span>}
+          </div>
+        </div>
+      );
+    }
+
+    function Brand() {
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--wheat)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="5" y="3" width="14" height="18" rx="0.5" />
+            <circle cx="15.5" cy="12" r="0.8" fill="var(--accent)" stroke="none" />
+          </svg>
+          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+            <span style={{ fontFamily: "var(--serif-display)", fontSize: 16, color: "var(--wheat)", letterSpacing: "-0.01em" }}>Frequency Tamer</span>
+            <span className="mono-eyebrow" style={{ fontSize: 9, marginTop: 2 }}>WEATHERROOM · VST3</span>
+          </div>
+        </div>
+      );
+    }
+
+    function PluginShell({ children }) {
+      return (
+        <div style={{
+          width: 900, height: 500,
+          background:
+            "radial-gradient(80% 60% at 20% 0%, rgba(24,58,55,0.55) 0%, transparent 60%)," +
+            "radial-gradient(60% 50% at 110% 110%, rgba(67,37,52,0.45) 0%, transparent 60%)," +
+            "var(--bg)",
+          color: "var(--text)",
+          fontFamily: "var(--sans)",
+          overflow: "hidden", position: "relative",
+          display: "flex", flexDirection: "column",
+        }}>
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            backgroundImage: "radial-gradient(rgba(239,214,172,0.04) 1px, transparent 1px)",
+            backgroundSize: "3px 3px", mixBlendMode: "overlay", opacity: 0.4,
+          }} />
+          {children}
+        </div>
+      );
+    }
+
+    function Plate() {
+      return (
+        <PluginShell>
+          {/* HEADER · y 0..50 */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 10px" }}>
+            <Brand />
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <span className="mono-eyebrow" style={{ color: "var(--text-mute)" }}>BAND 01 · BELL</span>
+              <span style={{ width: 1, height: 14, background: "var(--line)" }} />
+              <TogglePlate label="Listen" />
+              <TogglePlate label="Bypass" />
+            </div>
+          </div>
+
+          {/* FFT PANE · padding 0 20, fills until footer */}
+          <div style={{ padding: "0 20px", flex: 1, minHeight: 0, display: "flex" }}>
+            <div style={{
+              flex: 1, minHeight: 0,
+              background: "linear-gradient(180deg, rgba(7,32,43,0.7), rgba(4,21,31,0.9))",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--r-sm)",
+              padding: 10, position: "relative", display: "flex",
+            }}>
+              <FFTPlate width={840} height={282} />
+            </div>
+          </div>
+
+          {/* FOOTER · marginTop 8, padding 10 20 14 */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 0,
+            padding: "10px 20px 14px", borderTop: "1px solid var(--line)",
+            marginTop: 8,
+          }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 200 }}>
+              <span className="mono-eyebrow">SELECTED</span>
+              <div style={{ fontFamily: "var(--serif-display)", fontStyle: "italic", fontSize: 20, color: "var(--wheat)", lineHeight: 1.1 }}>the muddy bit</div>
+              <span className="caption" style={{ fontSize: 11 }}>drag to move on the spectrum</span>
+            </div>
+
+            <div style={{ width: 1, alignSelf: "stretch", background: "var(--line)" }} />
+
+            <div style={{ display: "flex", gap: 24, padding: "0 24px", alignItems: "center" }}>
+              <KnobPlate size={80} label="GAIN" />
+              <KnobPlate size={80} label="Q" />
+            </div>
+
+            <div style={{ width: 1, alignSelf: "stretch", background: "var(--line)" }} />
+
+            <div style={{ display: "flex", gap: 18, padding: "0 24px", flex: 1, justifyContent: "space-around" }}>
+              <StatPlate label="In" value="−12.4" unit="dB" />
+              <StatPlate label="Out" value="−11.8" unit="dB" />
+              <StatPlate label="GR" value="0.6" unit="dB" />
+              <StatPlate label="Width" value="0.42" unit="oct" />
+            </div>
+          </div>
+        </PluginShell>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<div className="stage"><Plate /></div>);
+  </script>
+</body>
+</html>

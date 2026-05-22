@@ -1,5 +1,6 @@
 //------------------------------------------------------------------------
-// Copyright(c) 2022 Steinberg Media Technologies GmbH.
+// helloworldcids.h  — Frequency Tamer parameter IDs
+// Drop-in replacement for source/helloworldcids.h
 //------------------------------------------------------------------------
 
 #pragma once
@@ -12,14 +13,19 @@ namespace Steinberg {
 //------------------------------------------------------------------------
 enum HelloWorldParams : Vst::ParamID
 {
-	kBypassId = 100,
+    kBypassId       = 100,
 
-	kParamVolId = 102,
-	kParamOnId = 1000
+    kParamGainId    = 102,  // dB, -18 .. +18, default 0
+    kParamQId       = 103,  // Q,   0.1 .. 10,  default 1.0
+    kParamFreqId    = 104,  // Hz,  20  .. 20000, log, default 1000
+    kParamListenId  = 1000  // bool: solo the band
 };
 
 //------------------------------------------------------------------------
-static const Steinberg::FUID kHelloWorldProcessorUID (0x32C50013, 0xFF5F5CB4, 0x871C312D, 0xB4F42368);
+// Keep the UIDs you already have so existing project files / DAW sessions
+// still recognise the plug-in. Only the param table is changing.
+//------------------------------------------------------------------------
+static const Steinberg::FUID kHelloWorldProcessorUID  (0x32C50013, 0xFF5F5CB4, 0x871C312D, 0xB4F42368);
 static const Steinberg::FUID kHelloWorldControllerUID (0xAE34DD83, 0x308259DF, 0xA0D88E2F, 0xB1C1CB8B);
 
 #define HelloWorldVST3Category "Fx"
