@@ -22,9 +22,6 @@ enum HelloWorldParams : Vst::ParamID
 };
 
 //------------------------------------------------------------------------
-// Keep the UIDs you already have so existing project files / DAW sessions
-// still recognise the plug-in. Only the param table is changing.
-//------------------------------------------------------------------------
 static const Steinberg::FUID kHelloWorldProcessorUID  (0x32C50013, 0xFF5F5CB4, 0x871C312D, 0xB4F42368);
 static const Steinberg::FUID kHelloWorldControllerUID (0xAE34DD83, 0x308259DF, 0xA0D88E2F, 0xB1C1CB8B);
 

@@ -16,7 +16,6 @@ namespace Steinberg {
 //------------------------------------------------------------------------
 HelloWorldProcessor::HelloWorldProcessor ()
 {
-	//--- set the wanted controller for our processor
 	setControllerClass (kHelloWorldControllerUID);
 }
 
@@ -27,21 +26,12 @@ HelloWorldProcessor::~HelloWorldProcessor ()
 //------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldProcessor::initialize (FUnknown* context)
 {
-	// Here the Plug-in will be instantiated
-	
-	//---always initialize the parent-------
 	tresult result = AudioEffect::initialize (context);
-	// if everything Ok, continue
 	if (result != kResultOk)
-	{
 		return result;
-	}
 
-	//--- create Audio IO ------
 	addAudioInput (STR16 ("Stereo In"), Steinberg::Vst::SpeakerArr::kStereo);
 	addAudioOutput (STR16 ("Stereo Out"), Steinberg::Vst::SpeakerArr::kStereo);
-
-	/* If you don't need an event bus, you can remove the next line */
 	addEventInput (STR16 ("Event In"), 1);
 
 	return kResultOk;
@@ -50,24 +40,18 @@ tresult PLUGIN_API HelloWorldProcessor::initialize (FUnknown* context)
 //------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldProcessor::terminate ()
 {
-	// Here the Plug-in will be de-instantiated, last possibility to remove some memory!
-	
-	//---do not forget to call parent ------
 	return AudioEffect::terminate ();
 }
 
 //------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldProcessor::setActive (TBool state)
 {
-	//--- called when the Plug-in is enable/disable (On/Off) -----
 	return AudioEffect::setActive (state);
 }
 
 //------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
 {
-    //--- Read inputs parameter changes-----------
-    // 1. Read parameter changes
     if (data.inputParameterChanges)
     {
         int32 numParamsChanged = data.inputParameterChanges->getParameterCount ();
@@ -82,15 +66,25 @@ tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
                 int32 numPoints = paramQueue->getPointCount ();
                 switch (paramQueue->getParameterId ())
                 {
-                    case HelloWorldParams::kParamVolId:
+                    case HelloWorldParams::kParamGainId:
                         if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
                             kResultTrue)
                             mParam1 = value;
                         break;
-                    case HelloWorldParams::kParamOnId:
+                    case HelloWorldParams::kParamQId:
                         if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
                             kResultTrue)
-                            mParam2 = value > 0 ? 1 : 0;
+                            mParamQ = value;
+                        break;
+                    case HelloWorldParams::kParamFreqId:
+                        if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
+                            kResultTrue)
+                            mParamFreq = value;
+                        break;
+                    case HelloWorldParams::kParamListenId:
+                        if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
+                            kResultTrue)
+                            mParam2 = value > 0.5 ? 1 : 0;
                         break;
                     case HelloWorldParams::kBypassId:
                         if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
@@ -102,16 +96,12 @@ tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
         }
     }
 
-    //--- Process Audio---------------------
-    //--- ----------------------------------
-    // 2. Guard
     if (data.numInputs == 0 || data.numOutputs == 0 || data.numSamples == 0)
         return kResultOk;
- 
+
     int32  numChannels  = data.inputs[0].numChannels;
     uint32 sampleFrames = data.numSamples;
- 
-    // 3. Bypass
+
     if (mBypass)
     {
         for (int32 ch = 0; ch < numChannels; ch++)
@@ -120,50 +110,39 @@ tresult PLUGIN_API HelloWorldProcessor::process (Vst::ProcessData& data)
             float* out = data.outputs[0].channelBuffers32[ch];
             memcpy(out, in, sampleFrames * sizeof(float));
         }
-        // NEW — still feed the spectrum buffer in bypass so the display stays alive
         if (numChannels > 0)
             mSpectrumBuffer.write(data.inputs[0].channelBuffers32[0], sampleFrames);
         return kResultOk;
     }
- 
-    // 4. DSP — gain
+
     float gain = (float)mParam1;
- 
+
     for (int32 ch = 0; ch < numChannels; ch++)
     {
         float* in  = data.inputs[0].channelBuffers32[ch];
         float* out = data.outputs[0].channelBuffers32[ch];
- 
+
         for (uint32 s = 0; s < sampleFrames; s++)
             out[s] = in[s] * gain;
     }
- 
-    // NEW — push left channel into spectrum ring buffer (post-gain)
+
     if (numChannels > 0)
         mSpectrumBuffer.write(data.outputs[0].channelBuffers32[0], sampleFrames);
- 
-    return kResultOk;
 
+    return kResultOk;
 }
 
 //------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldProcessor::setupProcessing (Vst::ProcessSetup& newSetup)
 {
-	//--- called before any processing ----
 	return AudioEffect::setupProcessing (newSetup);
 }
 
 //------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldProcessor::canProcessSampleSize (int32 symbolicSampleSize)
 {
-	// by default kSample32 is supported
 	if (symbolicSampleSize == Vst::kSample32)
 		return kResultTrue;
-
-	// disable the following comment if your processing support kSample64
-	/* if (symbolicSampleSize == Vst::kSample64)
-		return kResultTrue; */
-
 	return kResultFalse;
 }
 
@@ -173,25 +152,22 @@ tresult PLUGIN_API HelloWorldProcessor::setState (IBStream* state)
 	if (!state)
 		return kResultFalse;
 
-	// called when we load a preset or project, the model has to be reloaded
-
 	IBStreamer streamer (state, kLittleEndian);
 
-	float savedParam1 = 0.f;
-	if (streamer.readFloat (savedParam1) == false)
-		return kResultFalse;
+	float savedGain = 0.5f, savedQ = 0.2f, savedFreq = 0.5f;
+	int32 savedListen = 0, savedBypass = 0;
 
-	int32 savedParam2 = 0;
-	if (streamer.readInt32 (savedParam2) == false)
-		return kResultFalse;
+	if (streamer.readFloat (savedGain)   == false) return kResultFalse;
+	if (streamer.readFloat (savedQ)      == false) return kResultFalse;
+	if (streamer.readFloat (savedFreq)   == false) return kResultFalse;
+	if (streamer.readInt32 (savedListen) == false) return kResultFalse;
+	if (streamer.readInt32 (savedBypass) == false) return kResultFalse;
 
-	int32 savedBypass = 0;
-	if (streamer.readInt32 (savedBypass) == false)
-		return kResultFalse;
-
-	mParam1 = savedParam1;
-	mParam2 = savedParam2 > 0 ? 1 : 0;
-	mBypass = savedBypass > 0;
+	mParam1    = savedGain;
+	mParamQ    = savedQ;
+	mParamFreq = savedFreq;
+	mParam2    = savedListen > 0 ? 1 : 0;
+	mBypass    = savedBypass > 0;
 
 	return kResultOk;
 }
@@ -199,23 +175,15 @@ tresult PLUGIN_API HelloWorldProcessor::setState (IBStream* state)
 //------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldProcessor::getState (IBStream* state)
 {
-	// here we need to save the model (preset or project)
-
-	float toSaveParam1 = mParam1;
-	int32 toSaveParam2 = mParam2;
-	int32 toSaveBypass = mBypass ? 1 : 0;
-
 	IBStreamer streamer (state, kLittleEndian);
-	streamer.writeFloat (toSaveParam1);
-	streamer.writeInt32 (toSaveParam2);
-	streamer.writeInt32 (toSaveBypass);
+	streamer.writeFloat ((float)mParam1);
+	streamer.writeFloat ((float)mParamQ);
+	streamer.writeFloat ((float)mParamFreq);
+	streamer.writeInt32 (mParam2);
+	streamer.writeInt32 (mBypass ? 1 : 0);
 
 	return kResultOk;
 }
-
-
-
-
 
 //------------------------------------------------------------------------
 } // namespace Steinberg

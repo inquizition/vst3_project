@@ -1,10 +1,10 @@
-//----------------------------------------------------------//------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Copyright(c) 2022 Steinberg Media Technologies GmbH.
 //------------------------------------------------------------------------
 
 #include "helloworldcontroller.h"
 #include "helloworldcids.h"
-#include "helloworldprocessor.h"   // full definition needed for FUnknownPtr cast
+#include "helloworldprocessor.h"
 #include "Spectrumview.h"
 #include "vstgui/plugin-bindings/vst3editor.h"
 #include "base/source/fstreamer.h"
@@ -15,16 +15,12 @@ using namespace Steinberg;
 namespace Steinberg {
 
 //------------------------------------------------------------------------
-// connect() — called by the host to link controller <-> processor.
-// We use FUnknownPtr to safely cast the peer to HelloWorldProcessor.
-//------------------------------------------------------------------------
 tresult PLUGIN_API HelloWorldController::connect (Vst::IConnectionPoint* other)
 {
     tresult result = EditControllerEx1::connect (other);
 
     if (other && result == kResultOk)
     {
-        // FUnknownPtr on IComponent is unambiguous — then dynamic_cast to the concrete type
         Steinberg::FUnknownPtr<Steinberg::Vst::IComponent> component (other);
         if (component)
             mProcessor = dynamic_cast<HelloWorldProcessor*> (component.getInterface ());
@@ -44,15 +40,23 @@ tresult PLUGIN_API HelloWorldController::initialize (FUnknown* context)
 
     parameters.addParameter (STR16 ("Bypass"), nullptr, 1, 0,
                              Vst::ParameterInfo::kCanAutomate | Vst::ParameterInfo::kIsBypass,
-                             HelloWorldParams::kBypassId);
+                             kBypassId);
 
-    parameters.addParameter (STR16 ("Parameter 1"), STR16 ("dB"), 0, .5,
-                             Vst::ParameterInfo::kCanAutomate, HelloWorldParams::kParamVolId, 0,
-                             STR16 ("Param1"));
+    parameters.addParameter (STR16 ("Gain"), STR16 ("dB"), 0, 0.5,
+                             Vst::ParameterInfo::kCanAutomate, kParamGainId, 0,
+                             STR16 ("Gain"));
 
-    parameters.addParameter (STR16 ("Parameter 2"), STR16 ("On/Off"), 1, 1.,
-                             Vst::ParameterInfo::kCanAutomate, HelloWorldParams::kParamOnId, 0,
-                             STR16 ("Param2"));
+    parameters.addParameter (STR16 ("Q"), nullptr, 0, 0.2,
+                             Vst::ParameterInfo::kCanAutomate, kParamQId, 0,
+                             STR16 ("Q"));
+
+    parameters.addParameter (STR16 ("Freq"), STR16 ("Hz"), 0, 0.5,
+                             Vst::ParameterInfo::kCanAutomate, kParamFreqId, 0,
+                             STR16 ("Freq"));
+
+    parameters.addParameter (STR16 ("Listen"), STR16 ("On/Off"), 1, 0,
+                             Vst::ParameterInfo::kCanAutomate, kParamListenId, 0,
+                             STR16 ("Listen"));
 
     return result;
 }
@@ -71,20 +75,20 @@ tresult PLUGIN_API HelloWorldController::setComponentState (IBStream* state)
 
     IBStreamer streamer (state, kLittleEndian);
 
-    float savedParam1 = 0.f;
-    if (streamer.readFloat (savedParam1) == false)
-        return kResultFalse;
-    setParamNormalized (HelloWorldParams::kParamVolId, savedParam1);
+    float gainNorm = 0.5f, qNorm = 0.2f, freqNorm = 0.5f;
+    int32 listenState = 0, bypassState = 0;
 
-    int8 savedParam2 = 0;
-    if (streamer.readInt8 (savedParam2) == false)
-        return kResultFalse;
-    setParamNormalized (HelloWorldParams::kParamOnId, savedParam2);
+    if (streamer.readFloat (gainNorm)    == false) return kResultFalse;
+    if (streamer.readFloat (qNorm)       == false) return kResultFalse;
+    if (streamer.readFloat (freqNorm)    == false) return kResultFalse;
+    if (streamer.readInt32 (listenState) == false) return kResultFalse;
+    if (streamer.readInt32 (bypassState) == false) return kResultFalse;
 
-    int32 bypassState;
-    if (streamer.readInt32 (bypassState) == false)
-        return kResultFalse;
-    setParamNormalized (kBypassId, bypassState ? 1 : 0);
+    setParamNormalized (kParamGainId,   gainNorm);
+    setParamNormalized (kParamQId,      qNorm);
+    setParamNormalized (kParamFreqId,   freqNorm);
+    setParamNormalized (kParamListenId, listenState ? 1.0 : 0.0);
+    setParamNormalized (kBypassId,      bypassState ? 1.0 : 0.0);
 
     return kResultOk;
 }
@@ -107,8 +111,6 @@ IPlugView* PLUGIN_API HelloWorldController::createView (FIDString name)
     if (!FIDStringsEqual (name, Vst::ViewType::kEditor))
         return nullptr;
 
-    // Local subclass of VST3Editor so we can override open()
-    // and inject the SpectrumView after the VSTGUI frame exists.
     struct HelloWorldEditor : public VSTGUI::VST3Editor
     {
         HelloWorldController* mCtrl;
@@ -123,12 +125,11 @@ IPlugView* PLUGIN_API HelloWorldController::createView (FIDString name)
             if (!VSTGUI::VST3Editor::open (parent, type))
                 return false;
 
-            VSTGUI::CRect specRect (10, 130, 490, 260);
+            VSTGUI::CRect specRect (30, 68, 870, 336);
 
             auto* specView = new SpectrumView (specRect,
                 [this](float* outMag, int size) -> bool
                 {
-                    // Drain ring buffer from processor into the analyzer
                     if (mCtrl->mProcessor)
                     {
                         auto& rb = mCtrl->mProcessor->getSpectrumBuffer ();
