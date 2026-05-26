@@ -142,10 +142,22 @@ IPlugView* PLUGIN_API HelloWorldController::createView (FIDString name)
                 }
             );
 
+            // Wire frequency-marker interaction to the controller parameter.
+            specView->setFreqCallbacks ({
+                [this]()        { mCtrl->beginEdit   (kParamFreqId); },
+                [this](float f) {
+                    mCtrl->setParamNormalized (kParamFreqId, f);
+                    mCtrl->performEdit        (kParamFreqId, f);
+                },
+                [this]()        { mCtrl->endEdit     (kParamFreqId); }
+            });
+
+            // Show the current frequency value on first open.
+            specView->setFreqNorm ((float)mCtrl->getParamNormalized (kParamFreqId));
+
             getFrame ()->addView (specView);
             return true;
-        }
-    };
+        }    };
 
     return new HelloWorldEditor (this);
 }
