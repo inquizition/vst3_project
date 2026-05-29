@@ -46,7 +46,8 @@ public:
     }
 
     ~SpectrumView() override { if (mTimer) mTimer->stop(); }
-
+    
+    void setSampleRate (double sr) { mSampleRate = sr; }
     void setFreqCallbacks (FreqCallbacks cbs) { mFreqCbs = std::move (cbs); }
     void setFreqNorm (float f) { mFreqNorm = std::max (0.f, std::min (1.f, f)); invalid(); }
 
@@ -62,16 +63,16 @@ public:
         if (mPreCallback)
         {
             drawSpectrumFill (ctx, r, mSmoothedPre,
-                              VSTGUI::CColor (239, 214, 172, 18));   // wheat fill, very faint
+                              VSTGUI::CColor (239, 203, 123, 77));   // wheat fill, very faint
             drawSpectrumLine (ctx, r, mSmoothedPre,
-                              VSTGUI::CColor (239, 214, 172, 90));   // wheat line, dim
+                              VSTGUI::CColor (239, 238, 114, 43));   // wheat line, dim
         }
 
         // Post-filter (wet) curve on top
         drawSpectrumFill (ctx, r, mSmoothedPost,
-                          VSTGUI::CColor (0, 180, 220, 40));         // cyan fill
+                          VSTGUI::CColor (0, 46, 178, 139));         // cyan fill
         drawSpectrumLine (ctx, r, mSmoothedPost,
-                          VSTGUI::CColor (0, 210, 255, 230));        // cyan line, bright
+                          VSTGUI::CColor (0, 22, 202, 148));        // cyan line, bright
 
         if (mFreqNorm >= 0.f)
             drawFreqMarker (ctx, r);
@@ -163,19 +164,28 @@ private:
                                               const std::vector<float>& smoothed) const
     {
         const int   numBins  = (int)smoothed.size();
-        const float width    = (float)r.getWidth();
-        const float height   = (float)r.getHeight();
-        const float logMin   = std::log10 (1.f);
-        const float logMax   = std::log10 ((float)numBins);
-        const float logRange = logMax - logMin;
+        const float sr       = (float)mSampleRate;
+        const float fftSize  = (float)(numBins * 2);  // kFftSize = 2 * kNumBins
+
+        // Use the same log-frequency scale as the processor: 20 Hz – 20 kHz.
+        // This makes freqNorm == logX, so the marker and click positions are exact.
+        constexpr float kMinHz = 20.f;
+        constexpr float kMaxHz = 20000.f;
+        const float logMin     = std::log10 (kMinHz);
+        const float logRange   = std::log10 (kMaxHz) - logMin;
 
         std::vector<VSTGUI::CPoint> pts;
         pts.reserve (numBins);
+
         for (int i = 1; i < numBins; ++i)
         {
-            float logX = (std::log10 ((float)i) - logMin) / logRange;
-            pts.push_back ({ (float)r.left + logX * width,
-                             (float)r.bottom - smoothed[i] * height });
+            const float freqHz = (float)i * sr / fftSize;
+            if (freqHz < kMinHz || freqHz > kMaxHz) continue;
+
+            const float logX = (std::log10 (freqHz) - logMin) / logRange;
+            const float x    = (float)r.left + logX * (float)r.getWidth();
+            const float y    = (float)r.bottom - smoothed[i] * (float)r.getHeight();
+            pts.push_back ({ x, y });
         }
         return pts;
     }
@@ -247,6 +257,7 @@ private:
     VSTGUI::SharedPointer<VSTGUI::CVSTGUITimer> mTimer;
     float mFreqNorm = 0.5f;
     bool  mDragging = false;
+    double mSampleRate = 44100.0;
 };
 
 } // namespace Steinberg

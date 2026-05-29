@@ -41,6 +41,7 @@ tresult PLUGIN_API HelloWorldProcessor::setActive (TBool state)
 
 tresult PLUGIN_API HelloWorldProcessor::setupProcessing (Vst::ProcessSetup& newSetup)
 {
+    mSampleRate = newSetup.sampleRate;
     mFilterL.setSampleRate (newSetup.sampleRate);
     mFilterR.setSampleRate (newSetup.sampleRate);
     mFilterDirty = true;

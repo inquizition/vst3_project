@@ -32,6 +32,7 @@ public:
 
     SpscRingBuffer<float, 32768>& getSpectrumBuffer    () { return mSpectrumBuffer; }
     SpscRingBuffer<float, 32768>& getSpectrumBufferPre () { return mSpectrumBufferPre; }
+    double getSampleRate () const { return mSampleRate; }
 
 //------------------------------------------------------------------------
 protected:
@@ -53,6 +54,7 @@ protected:
 
     SpscRingBuffer<float, 32768> mSpectrumBuffer;     // post-filter (wet)
     SpscRingBuffer<float, 32768> mSpectrumBufferPre;  // pre-filter  (dry)
+    double mSampleRate = 44100.0;
 };
 
 } // namespace Steinberg

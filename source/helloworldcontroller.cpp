@@ -125,6 +125,9 @@ IPlugView* PLUGIN_API HelloWorldController::createView (FIDString name)
                 }
             );
 
+            specView->setSampleRate (
+                mCtrl->mProcessor ? mCtrl->mProcessor->getSampleRate () : 44100.0);
+
             specView->setFreqCallbacks ({
                 [this]()        { mCtrl->beginEdit (kParamFreqId); },
                 [this](float f) {

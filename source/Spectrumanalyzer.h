@@ -15,7 +15,7 @@
 class SpectrumAnalyzer
 {
 public:
-    static constexpr int kFftSize    = 2048;  // must be power of 2
+    static constexpr int kFftSize    = 4096;  // must be power of 2
     static constexpr int kNumBins    = kFftSize / 2;
     static constexpr float kMinDb    = -80.f;
     static constexpr float kMaxDb    =   0.f;
